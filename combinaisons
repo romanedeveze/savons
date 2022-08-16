@@ -1,0 +1,166 @@
+import pandas as pd
+import numpy as np
+import scipy.special
+from itertools import combinations
+from itertools import product
+
+
+data = pd.read_excel('C:/Users/Romane Deveze/Documents/Savons/20220808_Formulations.xlsx', sheet_name='Inputs python')
+#data.dropna()
+
+# INPUTS
+
+indice_Dureté = [29,54]
+indice_Détergence = [12,22]
+indice_Douceur=[44,69]
+indice_Moussant=[14,46]
+indice_Stabilité=[16,48]
+
+carac=['Dureté','Détergence', 'Douceur','Moussant','Stabilité']
+
+# Données sur les huiles
+
+    # Toutes les huiles
+
+huiles = data['Huile ou beurre']
+huiles = np.unique(huiles)
+
+nb_huiles = len(huiles)
+
+dico_min_1 = data[["Huile ou beurre", "Min"]]
+dico_min = dico_min_1.set_index("Huile ou beurre").T.to_dict('list')
+
+dico_max_1 = data[["Huile ou beurre", "Max"]]
+dico_max = dico_max_1.set_index("Huile ou beurre").T.to_dict('list')
+
+    # Fonctions
+
+def prix_kg(huile,scenario):
+    prix_1 = data[["Huile ou beurre",str('Coût_Graisse_#'+str(scenario))]]
+    prix_gr = prix_1.set_index("Huile ou beurre").T.to_dict('list')
+    prix_huile = prix_gr[huile][0]*1000
+    return prix_huile
+
+def propriete(huile, prop):
+    dico_prop_1 = data[["Huile ou beurre", prop]]
+    dico_prop = dico_prop_1.set_index("Huile ou beurre").T.to_dict('list')
+    indice_prop = dico_prop[huile][0]
+    return indice_prop
+
+def min_max_huile(huile):
+    min=dico_min[huile][0]
+    max=dico_max[huile][0]
+    return (min,max)
+
+#Combinaisons d'huiles
+
+nb_combinaisons = scipy.special.binom(nb_huiles,5) + scipy.special.binom(nb_huiles,4) + scipy.special.binom(nb_huiles,3) + scipy.special.binom(nb_huiles,2) + scipy.special.binom(nb_huiles,1)
+
+def join_tuple_string(strings_tuple) -> str:
+   return ' '.join(strings_tuple)
+def combi(nb_huiles_):
+    if nb_huiles_==1:
+        result_1=[]
+        for i in range(len(huiles)):
+            liste_1=[]
+            liste_1.append(huiles[i])
+            result_1.append(liste_1)
+    else:
+        combi_1 = combinations(huiles, nb_huiles_)
+        combi_2 = list(combi_1)
+        combi_3=[]
+        for i in range (len(combi_2)):
+            combi_3.append(list(combi_2[i]))
+        result_1 = combi_3
+    result_final=[]
+    for x in range (len(result_1)):
+        result_2=["n.a","n.a","n.a","n.a","n.a"]
+        for i in range(len(result_1[x])):
+            result_2[i]=result_1[x][i]
+        result_final.append(result_2)
+    return result_final
+
+#all_combi = combi(1) + combi(2) + combi (3) + combi (4) + combi (5)
+#data_final = pd.DataFrame(all_combi, columns = ['H1','H2',"H3","H4","H5"])
+
+#Générer des combinaisons et poucentages =1
+
+def pourc(huile,pas):
+    list_pourc=[]
+    min_max=min_max_huile(huile)
+    nb=min_max[0]
+    max = min_max[1]
+    while nb<=max:
+        list_pourc.append(round(nb,2))
+        nb+=pas
+    list_pourc.append(round(max,2))
+    return list_pourc
+
+def combi_pourc(liste_h):
+    nb_h = len(liste_h)
+    total_list=[]
+    for i in range (nb_h):
+        if liste_h[i] != 'n.a':
+            list_pourc = pourc(liste_h[i],0.01)
+            total_list.append(list_pourc)
+    liste_1 = list(itertools.product(*total_list))
+    liste_2=[]
+    for i in range (len(liste_1)):
+        liste_3=[]
+        somme=sum(liste_1[i])
+        if somme==1:
+            while len(liste)
+            liste_3.append(liste_h)
+            liste_3.append(list(liste_1[i]))
+            liste_2.append(liste_3)
+    return liste_2
+
+#Calcul prix formulation
+
+def calc_prix_kg(liste_h,liste_pourc,scenario):
+    nb_huiles = len(liste_h)
+    prix=0
+    for i in range (nb_huiles):
+        prix += prix_kg(liste_h[i],scenario)*liste_pourc[i]
+    return prix
+
+#Calcul caractéristiques
+
+def calc_carac(liste_h, liste_pource):
+    liste_carac = list(carac)
+    nb_carac=len(liste_carac)
+    nb_huiles = len(liste_h)
+    liste_carac_num =[]
+    for i in range(nb_carac):
+        liste_1=[]
+        score_carac = 0
+        for x in range(nb_huiles):
+            prop=propriete(liste_h[x],liste_carac[i])*liste_pource[x]
+            score_carac += prop
+        liste_1.append(liste_carac[i])
+        liste_1.append(score_carac)
+        liste_carac_num.append(liste_1)
+    return liste_carac_num
+
+#Trier pour rester dans les bornes caractéristiques
+
+#Summary
+
+def final (huiles):
+    liste_finale = []
+    all_combi_2 = [['Beurre de karité', "Huile d'olive", 'n.a', 'n.a','n.a'],['Beurre de karité', "Huile de coco", 'n.a', 'n.a','n.a']]
+    for i in range(len(all_combi_2)):
+        liste_1=[]
+        concentrations=combi_pourc(all_combi_2[i])
+        liste_1.append(all_combi_2[i])
+        liste_1.append(concentrations)
+        liste_finale.append(liste_1)
+    return liste_finale
+
+x =pd.DataFrame(final(huiles))
+
+
+
+
+
+
