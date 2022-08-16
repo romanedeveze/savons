@@ -74,7 +74,7 @@ def combi(nb_huiles_):
         result_1 = combi_3
     result_final=[]
     for x in range (len(result_1)):
-        result_2=["n.a","n.a","n.a","n.a","n.a"]
+        result_2=["n.a.","n.a.","n.a.","n.a.","n.a."]
         for i in range(len(result_1[x])):
             result_2[i]=result_1[x][i]
         result_final.append(result_2)
@@ -100,20 +100,23 @@ def combi_pourc(liste_h):
     nb_h = len(liste_h)
     total_list=[]
     for i in range (nb_h):
-        if liste_h[i] != 'n.a':
+        if liste_h[i] != "n.a.":
             list_pourc = pourc(liste_h[i],0.01)
             total_list.append(list_pourc)
     liste_1 = list(itertools.product(*total_list))
-    liste_2=[]
+
+    liste_finale_combi=[]
     for i in range (len(liste_1)):
-        liste_3=[]
         somme=sum(liste_1[i])
         if somme==1:
-            while len(liste)
+            liste_3=[]
+            liste_num=list(liste_1[i])
+            while len(liste_num)<len(liste_h):
+                liste_num.append("n.a.")
             liste_3.append(liste_h)
-            liste_3.append(list(liste_1[i]))
-            liste_2.append(liste_3)
-    return liste_2
+            liste_3.append(liste_num)
+            liste_finale_combi.append(liste_3)
+    return liste_finale_combi
 
 #Calcul prix formulation
 
@@ -147,17 +150,27 @@ def calc_carac(liste_h, liste_pource):
 #Summary
 
 def final (huiles):
-    liste_finale = []
-    all_combi_2 = [['Beurre de karité', "Huile d'olive", 'n.a', 'n.a','n.a'],['Beurre de karité', "Huile de coco", 'n.a', 'n.a','n.a']]
+    liste_finale_info = []
+    all_combi_2 = [['Beurre de karité', "Huile d'olive", "n.a.", "n.a.","n.a."],['Beurre de karité', "Huile de coco", "n.a.", "n.a.","n.a."]]
     for i in range(len(all_combi_2)):
-        liste_1=[]
         concentrations=combi_pourc(all_combi_2[i])
-        liste_1.append(all_combi_2[i])
-        liste_1.append(concentrations)
-        liste_finale.append(liste_1)
-    return liste_finale
+        for x in range(len(concentrations)):
+            liste_finale_info.append(concentrations[x])
+    return liste_finale_info
 
-x =pd.DataFrame(final(huiles))
+def mise_en_forme(huiles):
+    matrice_liste=[]
+    liste_finale=final(huiles)
+    for i in range(len(liste_finale)):
+        huiles = liste_finale[i][0]
+        pct = liste_finale[i][1]
+        liste_1=huiles+pct
+        matrice_liste.append(liste_1)
+    matrice = pd.DataFrame(matrice_liste, columns=['H1', 'H2','H3','H4','H5','Conc. 1','Conc. 2','Conc. 3','Conc. 4','Conc. 5'])
+    return matrice
+
+
+
 
 
 
