@@ -124,12 +124,21 @@ def calc_prix_kg(liste_h,liste_pourc,scenario):
     nb_huiles = len(liste_h)
     prix=0
     for i in range (nb_huiles):
-        prix += prix_kg(liste_h[i],scenario)*liste_pourc[i]
+        if liste_h[i] != 'n.a.':
+            prix += prix_kg(liste_h[i],scenario)*liste_pourc[i]
     return prix
 
 #Calcul caractéristiques
 
-def calc_carac(liste_h, liste_pource):
+def calc_carac(liste_h,liste_pourc,prop):
+    nb_huiles = len(liste_h)
+    score=0
+    for i in range (nb_huiles):
+        if liste_h[i] != 'n.a.':
+            score += propriete(liste_h[i],prop)*liste_pourc[i]
+    return score
+
+def calc_carac_all(liste_h, liste_pource):
     liste_carac = list(carac)
     nb_carac=len(liste_carac)
     nb_huiles = len(liste_h)
@@ -162,18 +171,31 @@ def mise_en_forme(huiles):
     matrice_liste=[]
     liste_finale=final(huiles)
     for i in range(len(liste_finale)):
-        huiles = liste_finale[i][0]
-        pct = liste_finale[i][1]
+        huiles = liste_finale[i][0] #[ "Beurre de karité", 'Huile de coco', 'n.a.']
+        pct = liste_finale[i][1]    #[0.8,0.2,'n.a.]
+        Dureté=calc_carac(huiles,pct,"Dureté")
+        Détergence=calc_carac(huiles,pct,"Détergence") 
+        Douceur=calc_carac(huiles,pct,"Douceur") 
+        Moussant=calc_carac(huiles,pct,"Moussant") 
+        Stabilité=calc_carac(huiles,pct,"Stabilité")                           
+        prix_1=calc_prix_kg(huiles,pct,1) 
+        prix_2=calc_prix_kg(huiles,pct,2)
+        prix_3=calc_prix_kg(huiles,pct,3)                           
         liste_1=huiles+pct
+        liste_1.append(Dureté)
+        liste_1.append(Détergence)
+        liste_1.append(Douceur)
+        liste_1.append(Moussant)
+        liste_1.append(Stabilité)
+        liste_1.append(prix_1)
+        liste_1.append(prix_2)
+        liste_1.append(prix_3)
         matrice_liste.append(liste_1)
-    matrice = pd.DataFrame(matrice_liste, columns=['H1', 'H2','H3','H4','H5','Conc. 1','Conc. 2','Conc. 3','Conc. 4','Conc. 5'])
+    matrice = pd.DataFrame(matrice_liste, columns=['H1', 'H2','H3','H4','H5','Conc. 1','Conc. 2','Conc. 3','Conc. 4','Conc. 5','Dureté','Détergence','Douceur','Moussant','Stabilité', 'Coût #1','Coût #2','Coût #3'])
+    matrice = matrice.reindex(columns = ['H1','Conc. 1','H2','Conc. 2','H3','Conc. 3','H4','Conc. 4','H5','Conc. 5','Dureté','Détergence','Douceur','Moussant','Stabilité', 'Coût #1','Coût #2','Coût #3'])
     return matrice
 
-
-
-
-
-
-
-
+matrice_1 = mise_en_forme(huiles)
+combinaisons_csv = matrice_1.to_csv('combinaisons.csv')
+print('\nCSV String:\n', combinaisons_csv)
 
